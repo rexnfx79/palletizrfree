@@ -1,8 +1,9 @@
 import React, { Suspense, useRef, useState } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Environment, Grid, Text } from '@react-three/drei';
+import * as THREE from 'three';
 
-export function Scene3D({ result, cartonData, palletData, containerData, settings }) {
+export function Scene3D({ result, cartonData, palletData, containerData }) {
   const controlsRef = useRef();
   const [showPallets, setShowPallets] = useState(true);
   const [showCartons, setShowCartons] = useState(true);
@@ -84,7 +85,7 @@ export function Scene3D({ result, cartonData, palletData, containerData, setting
             cartonData={cartonData}
             palletData={palletData}
             containerData={containerData}
-            settings={settings}
+
             showPallets={showPallets}
             showCartons={showCartons}
             showContainer={showContainer}
@@ -151,18 +152,22 @@ export function Scene3D({ result, cartonData, palletData, containerData, setting
   );
 }
 
-function PalletVisualization({ result, cartonData, palletData, containerData, settings, showPallets, showCartons, showContainer }) {
+function PalletVisualization({ result, cartonData, palletData, containerData, showPallets, showCartons, showContainer }) {
   const { layout3D } = result;
   
   // Debug logging
   console.log('PalletVisualization received result:', result);
   console.log('layout3D:', layout3D);
+  console.log('cartonData:', cartonData);
+  console.log('palletData:', palletData);
+  console.log('containerData:', containerData);
   
-  if (!layout3D || !layout3D.palletLayout || !layout3D.containerLayout) {
+  if (!layout3D || (!layout3D.layout3D && !layout3D.cartonPositions)) {
     console.log('Missing layout3D data:', {
       hasLayout3D: !!layout3D,
-      hasPalletLayout: !!(layout3D && layout3D.palletLayout),
-      hasContainerLayout: !!(layout3D && layout3D.containerLayout)
+      hasNestedLayout3D: !!(layout3D && layout3D.layout3D),
+      hasCartonPositions: !!(layout3D && layout3D.cartonPositions),
+      layoutKeys: layout3D ? Object.keys(layout3D) : []
     });
     return null;
   }
@@ -188,16 +193,20 @@ function PalletVisualization({ result, cartonData, palletData, containerData, se
     height: containerData.height * scale
   };
 
-  // Get layout data
-  const { palletLayout, containerLayout } = layout3D;
-  const { palletPositions } = containerLayout;
-  const { cartonPositions } = palletLayout;
+  // Get layout data - the actual 3D data is nested in layout3D.layout3D
+  const { palletLayout, containerLayout } = layout3D.layout3D || {};
+  const { palletPositions } = containerLayout || {};
+  const { cartonPositions } = palletLayout || {};
+  
+  // If we don't have the nested structure, use the flat structure
+  const actualCartonPositions = cartonPositions || layout3D.cartonPositions || [];
+  const actualPalletPositions = palletPositions || layout3D.palletPositions || [];
   
   console.log('Layout data:', {
-    palletPositions: palletPositions?.length || 0,
-    cartonPositions: cartonPositions?.length || 0,
-    totalPallets: containerLayout.totalPallets,
-    totalCartons: result.totalCartons
+    palletPositions: actualPalletPositions?.length || 0,
+    cartonPositions: actualCartonPositions?.length || 0,
+    totalPallets: containerLayout?.totalPallets || layout3D.totalPalletsPlaced,
+    totalCartons: result.summary?.totalCartons || layout3D.totalCartons
   });
 
   return (
@@ -220,7 +229,7 @@ function PalletVisualization({ result, cartonData, palletData, containerData, se
       )}
       
       {/* Pallets and cartons */}
-      {palletPositions && palletPositions.map((palletPos, palletIndex) => (
+      {actualPalletPositions && actualPalletPositions.map((palletPos, palletIndex) => (
         <group key={palletIndex}>
           {/* Pallet */}
           {showPallets && (
@@ -250,7 +259,7 @@ function PalletVisualization({ result, cartonData, palletData, containerData, se
           )}
           
           {/* Cartons on this pallet */}
-          {showCartons && cartonPositions && cartonPositions.map((cartonPos, cartonIndex) => (
+          {showCartons && actualCartonPositions && actualCartonPositions.map((cartonPos, cartonIndex) => (
             <mesh
               key={`${palletIndex}-${cartonIndex}`}
               position={[

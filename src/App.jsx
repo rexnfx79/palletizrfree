@@ -35,7 +35,7 @@ import { ContainerStep } from './components/steps/ContainerStep';
 import { SettingsStep } from './components/steps/SettingsStep';
 
 // 3D visualization component for results display
-import { Scene3D } from './components/3d/Scene3D';
+import { SimpleScene3D } from './components/3d/SimpleScene3D';
 
 // Global application styles
 import './App.css';
@@ -229,7 +229,7 @@ function App() {
 }
 
 // Results Step Component
-function ResultsStep({ result, onReset }) {
+function ResultsStep({ result }) {
   if (!result) {
     return (
       <div className="bg-card rounded-2xl shadow-sm border border-border/50 backdrop-blur-sm p-6 animate-fade-in-up">
@@ -349,12 +349,11 @@ function ResultsStep({ result, onReset }) {
       {/* 3D Visualization */}
       <div className="bg-card rounded-2xl shadow-sm border border-border/50 backdrop-blur-sm p-6">
         <h2 className="text-xl font-semibold text-foreground mb-4">3D Visualization</h2>
-        <Scene3D 
+        <SimpleScene3D 
           result={result}
           cartonData={result?.carton}
           palletData={result?.pallet}
           containerData={result?.container}
-          settings={result?.settings}
         />
       </div>
     </div>

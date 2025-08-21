@@ -198,7 +198,7 @@ export function calculatePalletLoading(cartonData, palletData, settings = {}) {
 
 export function calculateContainerLoading(palletResult, containerData, palletData) {
   const { palletsNeeded } = palletResult;
-  const { length: cLength, width: cWidth, height: cHeight, weightCapacity } = containerData;
+  const { length: cLength, width: cWidth, height: cHeight, weightCapacity: _weightCapacity } = containerData;
   const { length: pLength, width: pWidth, height: pHeight } = palletData;
 
   // Calculate pallet orientations in container

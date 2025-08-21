@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { RotateCcw, ZoomIn, ZoomOut, Move3D, Eye, EyeOff, Layers, Box } from 'lucide-react';
 
-export function Controls3D({ onReset, onToggleView, onToggleLayer, viewMode = 'full' }) {
+export function Controls3D({ onReset, onToggleLayer }) {
   const [showPallets, setShowPallets] = useState(true);
   const [showCartons, setShowCartons] = useState(true);
   const [showContainer, setShowContainer] = useState(true);
