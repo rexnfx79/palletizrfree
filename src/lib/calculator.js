@@ -1,26 +1,68 @@
-// Pallet Calculator Logic with Validation
+/**
+ * Pallet Calculator Engine - Core Business Logic
+ * 
+ * Advanced container loading optimization algorithms with comprehensive validation.
+ * Implements multiple stacking strategies and constraint handling for optimal pallet loading.
+ * 
+ * Key Features:
+ * - Multi-algorithm optimization (simple, interlocked, column, auto-optimize)
+ * - Comprehensive input validation with realistic constraints
+ * - Weight and dimensional constraint handling
+ * - Carton rotation optimization for maximum efficiency
+ * - Container and pallet preset configurations
+ * - 3D layout generation for visualization
+ * 
+ * Algorithm Architecture:
+ * 1. Input validation → Constraint checking → Error reporting
+ * 2. Pallet loading → Carton arrangement → Layer optimization
+ * 3. Container loading → Pallet placement → Space utilization
+ * 4. Result generation → Efficiency metrics → 3D coordinates
+ * 
+ * Performance Considerations:
+ * - Optimized algorithms for real-time calculation
+ * - Efficient space utilization calculations
+ * - Memory-conscious data structures
+ * - Scalable for large carton quantities
+ */
+
+// Import 3D layout generation for visualization support
 import { create3DLayout } from './3d-layout.js';
 
+/**
+ * VALIDATION_RULES - Input Constraint Definitions
+ * 
+ * Comprehensive validation rules for all input categories.
+ * Ensures realistic and safe operational parameters.
+ * 
+ * Rule Structure:
+ * - min/max: Acceptable value ranges
+ * - unit: Measurement units for user feedback
+ * 
+ * Safety Considerations:
+ * - Prevents impossible physical configurations
+ * - Ensures structural integrity limits
+ * - Maintains realistic operational constraints
+ */
 export const VALIDATION_RULES = {
   carton: {
-    length: { min: 1, max: 500, unit: 'cm' },
-    width: { min: 1, max: 500, unit: 'cm' },
-    height: { min: 1, max: 500, unit: 'cm' },
-    weight: { min: 0.1, max: 1000, unit: 'kg' },
-    quantity: { min: 1, max: 10000, unit: 'pieces' }
+    length: { min: 1, max: 500, unit: 'cm' },      // Carton dimensions: 1cm to 5m
+    width: { min: 1, max: 500, unit: 'cm' },       // Realistic packaging sizes
+    height: { min: 1, max: 500, unit: 'cm' },      // Prevents impossibly large cartons
+    weight: { min: 0.1, max: 1000, unit: 'kg' },   // Weight: 100g to 1 ton per carton
+    quantity: { min: 1, max: 10000, unit: 'pieces' } // Quantity: 1 to 10,000 cartons
   },
   pallet: {
-    length: { min: 50, max: 200, unit: 'cm' },
-    width: { min: 50, max: 200, unit: 'cm' },
-    height: { min: 10, max: 50, unit: 'cm' },
-    maxStackHeight: { min: 100, max: 300, unit: 'cm' },
-    maxStackWeight: { min: 100, max: 2000, unit: 'kg' }
+    length: { min: 50, max: 200, unit: 'cm' },         // Standard pallet size ranges
+    width: { min: 50, max: 200, unit: 'cm' },          // 50cm to 2m dimensions
+    height: { min: 10, max: 50, unit: 'cm' },          // Pallet thickness: 10-50cm
+    maxStackHeight: { min: 100, max: 300, unit: 'cm' }, // Stack height: 1-3m
+    maxStackWeight: { min: 100, max: 2000, unit: 'kg' } // Stack weight: 100kg-2t
   },
   container: {
-    length: { min: 500, max: 1500, unit: 'cm' },
-    width: { min: 200, max: 300, unit: 'cm' },
-    height: { min: 200, max: 300, unit: 'cm' },
-    weightCapacity: { min: 10000, max: 30000, unit: 'kg' }
+    length: { min: 500, max: 1500, unit: 'cm' },       // Container length: 5-15m
+    width: { min: 200, max: 300, unit: 'cm' },         // Container width: 2-3m
+    height: { min: 200, max: 300, unit: 'cm' },        // Container height: 2-3m
+    weightCapacity: { min: 10000, max: 30000, unit: 'kg' } // Capacity: 10-30 tons
   }
 };
 

@@ -1,37 +1,97 @@
+/**
+ * Main Application Component - Palletizr Pro
+ * 
+ * Central orchestrator for the container loading optimization wizard.
+ * Manages step-based navigation, state coordination, and result visualization.
+ * 
+ * Architecture:
+ * - Uses useCalculator hook for centralized state management
+ * - Implements a 5-step wizard flow for data collection
+ * - Integrates real-time validation and 3D visualization
+ * - Provides responsive UI with iOS-style design patterns
+ * 
+ * Data Flow:
+ * 1. User inputs → Form validation → State updates
+ * 2. Step navigation → Progressive validation → Data persistence
+ * 3. Calculation trigger → Algorithm execution → Results display
+ * 4. 3D visualization → Interactive scene rendering
+ */
+
 import React from 'react';
+// Lucide React icons for consistent visual language
 import { Calculator, Package, Layers, Container, Settings, RotateCcw, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
+
+// Core application logic and state management
 import { useCalculator } from './hooks/useCalculator';
+
+// UI Components following modular architecture
 import { Header } from './components/Header';
 import { StepIndicator } from './components/StepIndicator';
+
+// Wizard step components for progressive data collection
 import { CartonStep } from './components/steps/CartonStep';
 import { PalletStep } from './components/steps/PalletStep';
 import { ContainerStep } from './components/steps/ContainerStep';
 import { SettingsStep } from './components/steps/SettingsStep';
+
+// 3D visualization component for results display
 import { Scene3D } from './components/3d/Scene3D';
+
+// Global application styles
 import './App.css';
 
+/**
+ * App Component
+ * 
+ * Main application entry point that coordinates the entire user experience.
+ * Implements a wizard-based interface for container loading optimization.
+ */
 function App() {
+  // Destructure state and actions from the central calculator hook
+  // This provides all the necessary data and functions for the wizard flow
   const {
-    currentStep,
-    steps,
-    cartonData,
-    palletData,
-    containerData,
-    settings,
-    validationErrors,
-    result,
-    isCalculating,
-    updateCartonData,
-    updatePalletData,
-    updateContainerData,
-    updateSettings,
-    nextStep,
-    prevStep,
-    calculateOptimization,
-    resetCalculator,
-    validateCurrentStep
+    // Navigation state
+    currentStep,        // Current wizard step index (0-4)
+    steps,             // Step configuration array
+
+    // Input data from each wizard step
+    cartonData,        // Carton specifications (dimensions, weight, quantity)
+    palletData,        // Pallet configuration (type, dimensions, constraints)
+    containerData,     // Container specifications (type, capacity)
+    settings,          // Optimization preferences and algorithm settings
+
+    // Application state
+    validationErrors,  // Form validation errors by category
+    result,           // Optimization calculation results
+    isCalculating,    // Loading state during calculations
+
+    // State update functions
+    updateCartonData,     // Update carton specifications
+    updatePalletData,     // Update pallet configuration  
+    updateContainerData,  // Update container specifications
+    updateSettings,       // Update optimization settings
+
+    // Navigation functions
+    nextStep,            // Advance to next step with validation
+    prevStep,            // Return to previous step
+    calculateOptimization, // Execute optimization algorithms
+    resetCalculator,     // Reset all data to initial state
+    validateCurrentStep  // Validate current step data
   } = useCalculator();
 
+  /**
+   * Step Renderer
+   * 
+   * Renders the appropriate component based on the current wizard step.
+   * Each step component receives its data, change handlers, and validation errors.
+   * 
+   * Step Flow:
+   * 0. CartonStep - Collect carton specifications
+   * 1. PalletStep - Configure pallet settings
+   * 2. ContainerStep - Select container type
+   * 3. SettingsStep - Set optimization preferences  
+   * 4. ResultsStep - Display calculation results and 3D visualization
+   */
   const renderCurrentStep = () => {
     switch (currentStep) {
       case 0:
@@ -77,9 +137,18 @@ function App() {
     }
   };
 
+  /**
+   * Navigation Guard
+   * 
+   * Determines if the user can proceed to the next step based on:
+   * - Current step validation status
+   * - Special cases (results step has no "next")
+   * 
+   * @returns {boolean} True if navigation is allowed
+   */
   const canProceed = () => {
-    if (currentStep === 4) return false; // Results step
-    return validateCurrentStep();
+    if (currentStep === 4) return false; // Results step - no further navigation
+    return validateCurrentStep(); // Validate current step data
   };
 
   return (
@@ -90,9 +159,18 @@ function App() {
         <StepIndicator steps={steps} currentStep={currentStep} />
         
         <div className="max-w-4xl mx-auto">
+          {/* Render the current step component */}
           {renderCurrentStep()}
           
-          {/* Navigation Buttons */}
+          {/* 
+            Navigation Controls
+            
+            Provides wizard navigation with:
+            - Previous button (disabled on first step)
+            - Next/Calculate button (validates before proceeding)
+            - Start Over button (on results step)
+            - Loading states during calculations
+          */}
           <div className="flex items-center justify-between mt-8 px-4">
             <button
               onClick={prevStep}

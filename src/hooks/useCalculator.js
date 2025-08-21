@@ -1,50 +1,126 @@
+/**
+ * useCalculator Hook - Central State Management
+ * 
+ * Primary state management hook for the Palletizr Pro application.
+ * Coordinates all wizard data, validation, navigation, and calculations.
+ * 
+ * Architecture:
+ * - Centralizes all application state in a single hook
+ * - Provides controlled data flow with validation integration
+ * - Manages step-by-step navigation with progressive validation
+ * - Coordinates calculation execution and result management
+ * 
+ * State Management Pattern:
+ * - Uses React useState for reactive state updates
+ * - Implements useCallback for performance optimization
+ * - Provides clear separation between data, UI state, and actions
+ * - Maintains data persistence across navigation
+ * 
+ * Integration Points:
+ * - calculator.js: Business logic and validation rules
+ * - Step components: Form data collection and display
+ * - 3D visualization: Result rendering and interaction
+ */
+
 import { useState, useCallback } from 'react';
 import { 
-  validateAllInputs, 
-  generateOptimizationReport,
-  PALLET_PRESETS,
-  CONTAINER_PRESETS 
+  validateAllInputs,      // Input validation functions
+  generateOptimizationReport, // Main calculation orchestrator
+  PALLET_PRESETS,        // Standard pallet configurations
+  CONTAINER_PRESETS      // Standard container configurations
 } from '../lib/calculator';
 
+/**
+ * useCalculator Hook
+ * 
+ * Central state management hook that provides:
+ * - Wizard navigation state and controls
+ * - Form data collection and validation
+ * - Calculation orchestration and result management
+ * - Error handling and user feedback
+ * 
+ * @returns {Object} State and action functions for the application
+ */
 export function useCalculator() {
+  // =================================================================
+  // STATE MANAGEMENT
+  // =================================================================
+  
+  /**
+   * Navigation State
+   * Tracks current position in the 5-step wizard flow
+   */
   const [currentStep, setCurrentStep] = useState(0);
+  
+  /**
+   * Carton Data State
+   * Stores carton specifications collected in step 1
+   * - Dimensions in centimeters
+   * - Weight in kilograms  
+   * - Quantity as integer count
+   */
   const [cartonData, setCartonData] = useState({
-    length: '50',
-    width: '30',
-    height: '25',
-    weight: '15',
-    quantity: '200'
+    length: '50',      // Carton length (cm)
+    width: '30',       // Carton width (cm) 
+    height: '25',      // Carton height (cm)
+    weight: '15',      // Carton weight (kg)
+    quantity: '200'    // Number of cartons to pack
   });
   
+  /**
+   * Pallet Data State
+   * Stores pallet configuration collected in step 2
+   * - Supports preset pallets (Euro, Standard, American) and custom
+   * - Dimensions and weight constraints
+   */
   const [palletData, setPalletData] = useState({
-    preset: 'euro',
-    length: '120',
-    width: '80',
-    height: '14.5',
-    maxStackHeight: '200',
-    maxStackWeight: '1000',
-    usePallets: true
+    preset: 'euro',           // Pallet type preset
+    length: '120',            // Pallet length (cm)
+    width: '80',              // Pallet width (cm)
+    height: '14.5',           // Pallet height (cm)
+    maxStackHeight: '200',    // Maximum stack height (cm)
+    maxStackWeight: '1000',   // Maximum stack weight (kg)
+    usePallets: true          // Whether to use pallets in optimization
   });
 
+  /**
+   * Container Data State  
+   * Stores container specifications collected in step 3
+   * - Supports standard container types (20ft, 40ft, 40ft HC) and custom
+   * - Dimensions and weight capacity constraints
+   */
   const [containerData, setContainerData] = useState({
-    preset: '40ft',
-    length: '1219.2',
-    width: '243.8',
-    height: '259.1',
-    weightCapacity: '26000'
+    preset: '40ft',           // Container type preset
+    length: '1219.2',         // Container length (cm)
+    width: '243.8',           // Container width (cm)
+    height: '259.1',          // Container height (cm)
+    weightCapacity: '26000'   // Maximum weight capacity (kg)
   });
 
+  /**
+   * Settings State
+   * Stores optimization preferences collected in step 4
+   * - Algorithm configuration and constraints
+   */
   const [settings, setSettings] = useState({
-    enableRotation: true,
-    preventVerticalRotation: false,
-    considerLoadBearing: false,
-    stackingPattern: 'auto'
+    enableRotation: true,           // Allow carton rotation for better fit
+    preventVerticalRotation: false, // Prevent vertical carton orientation
+    considerLoadBearing: false,     // Factor in load-bearing calculations
+    stackingPattern: 'auto'         // Stacking algorithm selection
   });
 
-  const [validationErrors, setValidationErrors] = useState({});
-  const [result, setResult] = useState(null);
-  const [isCalculating, setIsCalculating] = useState(false);
+  /**
+   * Application State
+   * Manages validation, calculation results, and UI state
+   */
+  const [validationErrors, setValidationErrors] = useState({}); // Form validation errors by category
+  const [result, setResult] = useState(null);                   // Optimization calculation results
+  const [isCalculating, setIsCalculating] = useState(false);    // Loading state during calculations
 
+  /**
+   * Wizard Step Configuration
+   * Defines the 5-step workflow for data collection and result display
+   */
   const steps = [
     { id: 'carton', title: 'Carton Details', description: 'Enter carton dimensions and quantity' },
     { id: 'pallet', title: 'Pallet Configuration', description: 'Configure pallet settings' },
@@ -52,6 +128,10 @@ export function useCalculator() {
     { id: 'settings', title: 'Optimization Settings', description: 'Configure calculation preferences' },
     { id: 'results', title: 'Results', description: 'View optimization results' }
   ];
+
+  // =================================================================
+  // STATE UPDATE FUNCTIONS
+  // =================================================================
 
   const updateCartonData = useCallback((field, value) => {
     setCartonData(prev => ({ ...prev, [field]: value }));
